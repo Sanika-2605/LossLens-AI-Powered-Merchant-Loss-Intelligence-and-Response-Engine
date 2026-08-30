@@ -5,7 +5,7 @@ import json
 from fastapi.testclient import TestClient
 from app.main import app
 from app.api.webhooks import normalize_razorpay_event, verify_signature
-from app.services.graph_service import build_merchant_graph, get_graph_summary
+from app.services.graph_service import GraphService
 
 client = TestClient(app)
 
@@ -51,14 +51,18 @@ def test_webhook_signature_verification():
 def test_graph_construction():
     sample_data = {
         "customers": [{"id": "c1", "status": "active"}],
-        "orders": [{"id": "o1", "customer_id": "c1"}],
+        "orders": [{"id": "o1", "customer_id": "c1", "coupon_id": None}],
         "payments": [{"id": "p1", "order_id": "o1", "amount": 100}],
         "refunds": [],
         "products": [],
         "devices": [],
         "addresses": [],
-        "coupons": []
+        "coupons": [],
+        "customer_device": [],
+        "customer_address": [],
+        "order_product": [],
     }
-    G = build_merchant_graph(sample_data)
+    svc = GraphService()
+    G = svc.build_graph_from_data(sample_data)
     assert G.number_of_nodes() == 3
     assert G.number_of_edges() == 2

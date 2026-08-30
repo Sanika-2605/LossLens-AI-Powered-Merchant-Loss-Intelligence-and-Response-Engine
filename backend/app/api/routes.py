@@ -2,7 +2,7 @@ import os
 import json
 from fastapi import APIRouter, Query, HTTPException
 from typing import List, Optional
-from app.services.graph_service import get_graph_summary, get_entity_subgraph
+from app.services.graph_service import graph_service
 
 router = APIRouter()
 
@@ -77,13 +77,54 @@ async def get_events(limit: int = Query(50, ge=1, le=500), offset: int = Query(0
     sorted_events = sorted(events, key=lambda x: x.get('event_timestamp', ''), reverse=True)
     return {"total": len(sorted_events), "data": sorted_events[offset:offset+limit]}
 
+
+# ---------------------------------------------------------------------------
+# Graph Intelligence APIs
+# ---------------------------------------------------------------------------
+
 @router.get("/graph/summary")
 async def graph_summary():
-    return get_graph_summary()
+    """Graph summary with node/edge counts, components, and communities."""
+    return graph_service.get_summary()
+
+
+@router.get("/graph/entities/{entity_type}/{entity_id}/neighbors")
+async def graph_entity_neighbors(
+    entity_type: str,
+    entity_id: str,
+    depth: int = Query(1, ge=1, le=2),
+    entity_type_filter: Optional[str] = Query(None, alias="entity_type"),
+):
+    """Return real connected entities and relationship types within depth hops."""
+    node_key = f"{entity_type}:{entity_id}"
+    # Ensure graph is loaded
+    graph_service._ensure_graph()
+    if node_key not in graph_service._graph:
+        raise HTTPException(status_code=404, detail="Entity not found in graph")
+
+    neighbors = graph_service.get_neighbors(
+        node_key, depth=depth, entity_type_filter=entity_type_filter
+    )
+    return {"entity_id": entity_id, "entity_type": entity_type, "depth": depth, "neighbors": neighbors}
+
 
 @router.get("/graph/entities/{entity_type}/{entity_id}")
-async def graph_entity(entity_type: str, entity_id: str):
-    subgraph = get_entity_subgraph(entity_type, entity_id)
-    if not subgraph.get("entity"):
-        raise HTTPException(status_code=404, detail="Entity not found in Knowledge Graph")
-    return subgraph
+async def graph_entity_analysis(entity_type: str, entity_id: str):
+    """Full entity analysis with all graph metrics."""
+    result = graph_service.get_entity_analysis(entity_type, entity_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Entity not found in graph")
+    return result
+
+
+@router.get("/graph")
+async def graph_data(limit: int = Query(500, ge=1, le=10000)):
+    """Return the full graph as React Flow-compatible nodes and edges."""
+    return graph_service.get_graph_data(limit=limit)
+
+
+@router.post("/graph/refresh")
+async def graph_refresh():
+    """Refresh the in-memory graph cache from current Supabase data."""
+    result = graph_service.refresh()
+    return result

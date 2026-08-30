@@ -35,3 +35,43 @@ export const fetchEntityGraph = async (entityType: string, entityId: string) => 
   const res = await fetch(`${API_BASE_URL}/graph/entities/${entityType}/${entityId}`);
   return res.json();
 };
+
+// ---------------------------------------------------------------------------
+// New Graph Intelligence APIs
+// ---------------------------------------------------------------------------
+
+/** Full graph as React Flow-compatible nodes/edges. */
+export const fetchGraphData = async (limit = 500) => {
+  const res = await fetch(`${API_BASE_URL}/graph?limit=${limit}`);
+  return res.json();
+};
+
+/** Full entity analysis with all graph metrics. */
+export const fetchEntityAnalysis = async (entityType: string, entityId: string) => {
+  const res = await fetch(`${API_BASE_URL}/graph/entities/${entityType}/${entityId}`);
+  if (!res.ok) {
+    throw new Error(`Entity not found: ${res.status}`);
+  }
+  return res.json();
+};
+
+/** Neighbors with depth and optional entity_type filter. */
+export const fetchEntityNeighbors = async (
+  entityType: string,
+  entityId: string,
+  depth: number = 1,
+  filterType?: string
+) => {
+  const params = new URLSearchParams({ depth: depth.toString() });
+  if (filterType) params.append('entity_type', filterType);
+  const res = await fetch(
+    `${API_BASE_URL}/graph/entities/${entityType}/${entityId}/neighbors?${params.toString()}`
+  );
+  return res.json();
+};
+
+/** Refresh the in-memory graph cache from current Supabase data. */
+export const refreshGraph = async () => {
+  const res = await fetch(`${API_BASE_URL}/graph/refresh`, { method: 'POST' });
+  return res.json();
+};
