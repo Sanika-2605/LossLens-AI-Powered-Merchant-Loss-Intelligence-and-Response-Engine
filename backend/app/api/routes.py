@@ -3,6 +3,7 @@ import json
 from fastapi import APIRouter, Query, HTTPException
 from typing import List, Optional
 from app.services.graph_service import graph_service
+from app.services.discovery_service import discovery_service
 
 router = APIRouter()
 
@@ -127,4 +128,48 @@ async def graph_data(limit: int = Query(500, ge=1, le=10000)):
 async def graph_refresh():
     """Refresh the in-memory graph cache from current Supabase data."""
     result = graph_service.refresh()
+    return result
+
+
+# ---------------------------------------------------------------------------
+# ML Discovery Engine APIs
+# ---------------------------------------------------------------------------
+
+# @router.post("/discovery/discover")
+# async def trigger_discovery():
+#     """Trigger the ML pattern discovery pipeline."""
+#     result = discovery_service.run_pipeline()
+#     if result.get("status") == "error":
+#         raise HTTPException(status_code=500, detail=result.get("message"))
+#     return result
+
+@router.post("/discovery/discover")
+async def trigger_discovery():
+    """Trigger the ML pattern discovery pipeline."""
+
+    result = discovery_service.run_pipeline()
+
+    print("DISCOVERY PIPELINE RESULT:", result)
+
+    if result.get("status") == "error":
+        raise HTTPException(
+            status_code=500,
+            detail=result.get("message")
+        )
+
+    return result
+
+
+@router.get("/discovery/patterns")
+async def get_patterns():
+    """Get all discovered patterns (clusters of suspicious activities)."""
+    return discovery_service.get_patterns()
+
+
+@router.get("/discovery/patterns/{pattern_id}")
+async def get_pattern_details(pattern_id: str):
+    """Get detailed transaction and customer information for a pattern."""
+    result = discovery_service.get_pattern_details(pattern_id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Pattern not found")
     return result

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Network, ArrowLeftRight, Share2, Activity, ShieldAlert } from 'lucide-react';
+import { LayoutDashboard, Network, ArrowLeftRight, Share2, Activity, ShieldAlert, Cpu } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const navItems = [
@@ -8,6 +8,7 @@ export const Layout: React.FC = () => {
     { path: '/ecosystem', label: 'Merchant Ecosystem', icon: Network },
     { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
     { path: '/graph', label: 'Graph Explorer', icon: Share2 },
+    { path: '/discovery', label: 'Pattern Discovery', icon: Cpu },
     { path: '/events', label: 'Event Monitor', icon: Activity },
   ];
 

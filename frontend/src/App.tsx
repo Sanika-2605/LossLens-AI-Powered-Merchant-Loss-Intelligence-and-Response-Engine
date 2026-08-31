@@ -6,6 +6,7 @@ import { Ecosystem } from './pages/Ecosystem';
 import { Transactions } from './pages/Transactions';
 import { GraphExplorer } from './pages/GraphExplorer';
 import { EventMonitor } from './pages/EventMonitor';
+import { LossDiscovery } from './pages/LossDiscovery';
 
 export const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ export const App: React.FC = () => {
           <Route path="ecosystem" element={<Ecosystem />} />
           <Route path="transactions" element={<Transactions />} />
           <Route path="graph" element={<GraphExplorer />} />
+          <Route path="discovery" element={<LossDiscovery />} />
           <Route path="events" element={<EventMonitor />} />
         </Route>
       </Routes>

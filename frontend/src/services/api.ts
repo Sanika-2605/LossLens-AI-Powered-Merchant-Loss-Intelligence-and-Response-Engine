@@ -75,3 +75,35 @@ export const refreshGraph = async () => {
   const res = await fetch(`${API_BASE_URL}/graph/refresh`, { method: 'POST' });
   return res.json();
 };
+
+// ---------------------------------------------------------------------------
+// AI/ML Discovery Engine APIs
+// ---------------------------------------------------------------------------
+
+/** Trigger the pattern discovery pipeline. */
+export const triggerPatternDiscovery = async () => {
+  const res = await fetch(`${API_BASE_URL}/discovery/discover`, { method: 'POST' });
+  if (!res.ok) {
+    throw new Error(`Failed to trigger discovery: ${res.status}`);
+  }
+  return res.json();
+};
+
+/** Fetch all discovered patterns. */
+export const fetchDiscoveredPatterns = async () => {
+  const res = await fetch(`${API_BASE_URL}/discovery/patterns`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch patterns: ${res.status}`);
+  }
+  return res.json();
+};
+
+/** Fetch details of a specific pattern. */
+export const fetchPatternDetails = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/discovery/patterns/${patternId}`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch pattern details: ${res.status}`);
+  }
+  return res.json();
+};
+
