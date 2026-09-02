@@ -1,15 +1,13 @@
 import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Network, ArrowLeftRight, Share2, Activity, ShieldAlert, Cpu } from 'lucide-react';
+import { LayoutDashboard, Cpu, ShieldAlert, CheckCircle } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const navItems = [
     { path: '/', label: 'Overview', icon: LayoutDashboard },
-    { path: '/ecosystem', label: 'Merchant Ecosystem', icon: Network },
-    { path: '/transactions', label: 'Transactions', icon: ArrowLeftRight },
-    { path: '/graph', label: 'Graph Explorer', icon: Share2 },
-    { path: '/discovery', label: 'Pattern Discovery', icon: Cpu },
-    { path: '/events', label: 'Event Monitor', icon: Activity },
+    { path: '/explorer', label: 'Pattern Explorer', icon: Cpu },
+    { path: '/investigation', label: 'Investigation', icon: ShieldAlert },
+    { path: '/decision', label: 'Decision Center', icon: CheckCircle },
   ];
 
   return (

@@ -413,9 +413,11 @@ class TestGraphData:
 def _inject_test_graph():
     """Replace the global graph_service with one backed by test data."""
     from app.services import graph_service as gs_module
+    import app.api.routes as routes_module
     svc = GraphService()
     svc.build_graph_from_data(_make_test_data())
     gs_module.graph_service = svc
+    routes_module.graph_service = svc
     return svc
 
 

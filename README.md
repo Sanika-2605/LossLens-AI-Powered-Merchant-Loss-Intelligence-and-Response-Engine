@@ -54,7 +54,7 @@ Discover ➔ Connect ➔ Detect ➔ Investigate ➔ Quantify ➔ Simulate ➔ Go
                                                 │
                                                 ▼
 ┌─────────────────────────┐      ┌───────────────────────────────┐
-│ Synthetic Dataset Tools │─────►│   FastAPI Webhook & API Gateway│
+│ Synthetic Dataset Tools │─────►│  FastAPI Webhook & API Gateway│
 │  (Faker / Pandas / CLI) │      └──────────────┬────────────────┘
 └─────────────────────────┘                     │
                                                 ▼
@@ -70,7 +70,7 @@ Discover ➔ Connect ➔ Detect ➔ Investigate ➔ Quantify ➔ Simulate ➔ Go
                                                 ▼
                                  ┌───────────────────────────────┐
                                  │  React 18 + Vite Dashboard    │
-                                 │ (ReactFlow, Recharts, Tailwind│
+                                 │ ReactFlow, Recharts, Tailwind │
                                  └───────────────────────────────┘
 ```
 

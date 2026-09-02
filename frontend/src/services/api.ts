@@ -107,3 +107,115 @@ export const fetchPatternDetails = async (patternId: string) => {
   return res.json();
 };
 
+// ---------------------------------------------------------------------------
+// Explainable Investigation & Decision Intelligence APIs
+// ---------------------------------------------------------------------------
+
+export const fetchInvestigation = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}`);
+  if (!res.ok) throw new Error(`Failed to fetch investigation: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationEvidence = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/evidence`);
+  if (!res.ok) throw new Error(`Failed to fetch evidence: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationExplanation = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/explanation`);
+  if (!res.ok) throw new Error(`Failed to fetch explanation: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationForecast = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/forecast`);
+  if (!res.ok) throw new Error(`Failed to fetch forecast: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationSimulation = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/simulation`);
+  if (!res.ok) throw new Error(`Failed to fetch simulation: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationDecision = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/decision`);
+  if (!res.ok) throw new Error(`Failed to fetch decision: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationHypotheses = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/hypotheses`);
+  if (!res.ok) throw new Error(`Failed to fetch hypotheses: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationAudit = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/audit`);
+  if (!res.ok) throw new Error(`Failed to fetch audit trail: ${res.status}`);
+  return res.json();
+};
+
+export const submitDecision = async (
+  patternId: string,
+  action: 'approve' | 'reject' | 'modify' | 'escalate' | 'dismiss',
+  payload: { user_id?: string; reason?: string; modified_action?: string } = {}
+) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/${action}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  if (!res.ok) throw new Error(`Failed to submit decision: ${res.status}`);
+  return res.json();
+};
+
+export const executeTestAction = async (
+  patternId: string,
+  actionName: string,
+  payload: { user_id?: string; reason?: string } = {}
+) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/act`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action_name: actionName, ...payload })
+  });
+  if (!res.ok) throw new Error(`Failed to execute test action: ${res.status}`);
+  return res.json();
+};
+
+export const submitMerchantFeedback = async (
+  patternId: string,
+  feedbackType: string,
+  payload: { notes?: string; user_id?: string } = {}
+) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ feedback_type: feedbackType, ...payload })
+  });
+  if (!res.ok) throw new Error(`Failed to submit feedback: ${res.status}`);
+  return res.json();
+};
+
+export const fetchInvestigationOutcome = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/outcome`);
+  if (!res.ok) throw new Error(`Failed to fetch outcome: ${res.status}`);
+  return res.json();
+};
+
+export const fetchPatternEvolution = async (patternId: string) => {
+  const res = await fetch(`${API_BASE_URL}/investigation/${patternId}/evolution`);
+  if (!res.ok) throw new Error(`Failed to fetch evolution: ${res.status}`);
+  return res.json();
+};
+
+export const fetchEvaluationMetrics = async () => {
+  const res = await fetch(`${API_BASE_URL}/evaluation`);
+  if (!res.ok) throw new Error(`Failed to fetch evaluation metrics: ${res.status}`);
+  return res.json();
+};
+

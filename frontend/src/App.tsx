@@ -2,11 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Overview } from './pages/Overview';
-import { Ecosystem } from './pages/Ecosystem';
-import { Transactions } from './pages/Transactions';
-import { GraphExplorer } from './pages/GraphExplorer';
-import { EventMonitor } from './pages/EventMonitor';
 import { LossDiscovery } from './pages/LossDiscovery';
+import { PatternInvestigation } from './pages/PatternInvestigation';
+import { DecisionCenter } from './pages/DecisionCenter';
 
 export const App: React.FC = () => {
   return (
@@ -14,11 +12,12 @@ export const App: React.FC = () => {
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route index element={<Overview />} />
-          <Route path="ecosystem" element={<Ecosystem />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="graph" element={<GraphExplorer />} />
+          <Route path="explorer" element={<LossDiscovery />} />
           <Route path="discovery" element={<LossDiscovery />} />
-          <Route path="events" element={<EventMonitor />} />
+          <Route path="investigation/:patternId" element={<PatternInvestigation />} />
+          <Route path="investigation" element={<PatternInvestigation />} />
+          <Route path="decision/:patternId" element={<DecisionCenter />} />
+          <Route path="decision" element={<DecisionCenter />} />
         </Route>
       </Routes>
     </BrowserRouter>
