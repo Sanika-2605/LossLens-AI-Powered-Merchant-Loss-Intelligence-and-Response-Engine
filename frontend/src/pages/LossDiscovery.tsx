@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Cpu, AlertTriangle, ChevronRight, Users, Smartphone, MapPin, IndianRupee, RefreshCw, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Cpu, AlertTriangle, ChevronRight, Users, Smartphone, MapPin, IndianRupee, RefreshCw, X, ShieldAlert } from 'lucide-react';
 import { triggerPatternDiscovery, fetchDiscoveredPatterns, fetchPatternDetails } from '../services/api';
 import clsx from 'clsx';
 
 export const LossDiscovery: React.FC = () => {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [patterns, setPatterns] = useState<any[]>([]);
   const [selectedPattern, setSelectedPattern] = useState<any | null>(null);
@@ -152,10 +154,20 @@ export const LossDiscovery: React.FC = () => {
                 </div>
               </div>
               
-              <div className="h-full flex items-center pt-8">
-                <button className="p-4 bg-indigo-600/10 text-indigo-400 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all flex items-center gap-2 border border-indigo-500/20 group-hover:shadow-lg group-hover:shadow-indigo-500/40">
-                  <span className="font-semibold">Inspect</span>
-                  <ChevronRight className="w-5 h-5" />
+              <div className="h-full flex items-center gap-3 pt-8">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/investigation/${p.id}`);
+                  }}
+                  className="px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/30 border border-blue-400/50"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Investigate</span>
+                </button>
+                <button className="p-3 bg-indigo-600/10 text-indigo-400 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all flex items-center gap-2 border border-indigo-500/20">
+                  <span className="font-semibold text-xs">Details</span>
+                  <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -174,9 +186,18 @@ export const LossDiscovery: React.FC = () => {
                 </div>
                 Cluster #{selectedPattern.cluster_number} Details
               </h2>
-              <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-[#1f293d] rounded-lg text-slate-400 transition-colors">
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate(`/investigation/${selectedPattern.id}`)}
+                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
+                >
+                  <ShieldAlert className="w-4 h-4" />
+                  <span>Full Investigation</span>
+                </button>
+                <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-[#1f293d] rounded-lg text-slate-400 transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
             
             <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
