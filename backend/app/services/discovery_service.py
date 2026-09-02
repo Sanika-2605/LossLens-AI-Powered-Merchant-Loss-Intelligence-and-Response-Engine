@@ -533,7 +533,7 @@ def find_data_directory():
     for _ in range(6):
         candidate = os.path.join(current_dir, "data", "generated")
 
-        if os.path.isdir(candidate):
+        if os.path.isdir(candidate) and os.path.exists(os.path.join(candidate, "customers.json")):
             return candidate
 
         parent = os.path.dirname(current_dir)
@@ -608,6 +608,9 @@ class DiscoveryService:
     def __init__(self):
         self._cached_patterns = None
         self._last_run_time = None
+        self.model_if = None
+        self.X_tx = None
+        self.features_tx = None
 
     # ========================================================
     # MAIN PIPELINE
@@ -1588,6 +1591,9 @@ class DiscoveryService:
             )
 
             model_if.fit(X_tx)
+            self.model_if = model_if
+            self.X_tx = X_tx
+            self.features_tx = features_tx
 
             raw_scores = (
                 model_if
