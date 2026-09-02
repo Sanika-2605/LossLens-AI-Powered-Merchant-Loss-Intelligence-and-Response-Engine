@@ -113,58 +113,51 @@ class GraphService:
         return G
 
     def _build_graph_from_db(self) -> nx.Graph:
-        """Query Supabase/PostgreSQL and build the full graph."""
-        if SessionLocal is None:
-            raise RuntimeError("Database not configured — cannot build graph")
+        """Query Supabase/PostgreSQL and build the full graph, with fallback to local JSON datasets."""
+        data: Dict[str, list] = {}
+        db_success = False
 
-        session = SessionLocal()
-        try:
-            data: Dict[str, list] = {}
+        if SessionLocal is not None:
+            try:
+                session = SessionLocal()
+                try:
+                    data["customers"] = [{"id": r[0]} for r in session.execute(text("SELECT id FROM customers")).fetchall()]
+                    data["orders"] = [{"id": r[0], "customer_id": r[1], "coupon_id": r[2]} for r in session.execute(text("SELECT id, customer_id, coupon_id FROM orders")).fetchall()]
+                    data["payments"] = [{"id": r[0], "order_id": r[1]} for r in session.execute(text("SELECT id, order_id FROM payments")).fetchall()]
+                    data["refunds"] = [{"id": r[0], "payment_id": r[1]} for r in session.execute(text("SELECT id, payment_id FROM refunds")).fetchall()]
+                    data["products"] = [{"id": r[0]} for r in session.execute(text("SELECT id FROM products")).fetchall()]
+                    data["devices"] = [{"id": r[0]} for r in session.execute(text("SELECT id FROM devices")).fetchall()]
+                    data["addresses"] = [{"id": r[0]} for r in session.execute(text("SELECT id FROM addresses")).fetchall()]
+                    data["coupons"] = [{"id": r[0]} for r in session.execute(text("SELECT id FROM coupons")).fetchall()]
+                    data["customer_device"] = [{"customer_id": r[0], "device_id": r[1]} for r in session.execute(text("SELECT customer_id, device_id FROM customer_device")).fetchall()]
+                    data["customer_address"] = [{"customer_id": r[0], "address_id": r[1]} for r in session.execute(text("SELECT customer_id, address_id FROM customer_address")).fetchall()]
+                    data["order_product"] = [{"order_id": r[0], "product_id": r[1]} for r in session.execute(text("SELECT order_id, product_id FROM order_product")).fetchall()]
+                    db_success = True
+                finally:
+                    session.close()
+            except Exception as e:
+                db_success = False
 
-            # Entity tables
-            data["customers"] = [
-                {"id": r[0]} for r in session.execute(text("SELECT id FROM customers")).fetchall()
-            ]
-            data["orders"] = [
-                {"id": r[0], "customer_id": r[1], "coupon_id": r[2]}
-                for r in session.execute(text("SELECT id, customer_id, coupon_id FROM orders")).fetchall()
-            ]
-            data["payments"] = [
-                {"id": r[0], "order_id": r[1]}
-                for r in session.execute(text("SELECT id, order_id FROM payments")).fetchall()
-            ]
-            data["refunds"] = [
-                {"id": r[0], "payment_id": r[1]}
-                for r in session.execute(text("SELECT id, payment_id FROM refunds")).fetchall()
-            ]
-            data["products"] = [
-                {"id": r[0]} for r in session.execute(text("SELECT id FROM products")).fetchall()
-            ]
-            data["devices"] = [
-                {"id": r[0]} for r in session.execute(text("SELECT id FROM devices")).fetchall()
-            ]
-            data["addresses"] = [
-                {"id": r[0]} for r in session.execute(text("SELECT id FROM addresses")).fetchall()
-            ]
-            data["coupons"] = [
-                {"id": r[0]} for r in session.execute(text("SELECT id FROM coupons")).fetchall()
-            ]
-
-            # Junction tables
-            data["customer_device"] = [
-                {"customer_id": r[0], "device_id": r[1]}
-                for r in session.execute(text("SELECT customer_id, device_id FROM customer_device")).fetchall()
-            ]
-            data["customer_address"] = [
-                {"customer_id": r[0], "address_id": r[1]}
-                for r in session.execute(text("SELECT customer_id, address_id FROM customer_address")).fetchall()
-            ]
-            data["order_product"] = [
-                {"order_id": r[0], "product_id": r[1]}
-                for r in session.execute(text("SELECT order_id, product_id FROM order_product")).fetchall()
-            ]
-        finally:
-            session.close()
+        if not db_success:
+            import os, json
+            data_dir = 'data/generated'
+            def load_json(name):
+                path = os.path.join(data_dir, f"{name}.json")
+                if os.path.exists(path):
+                    with open(path, 'r', encoding='utf-8') as fp:
+                        return json.load(fp)
+                return []
+            data["customers"] = load_json("customers")
+            data["orders"] = load_json("orders")
+            data["payments"] = load_json("payments")
+            data["refunds"] = load_json("refunds")
+            data["products"] = load_json("products")
+            data["devices"] = load_json("devices")
+            data["addresses"] = load_json("addresses")
+            data["coupons"] = load_json("coupons")
+            data["customer_device"] = load_json("customer_device")
+            data["customer_address"] = load_json("customer_address")
+            data["order_product"] = load_json("order_product")
 
         # Build graph using the shared builder (no lock — caller holds it)
         G = nx.Graph()
