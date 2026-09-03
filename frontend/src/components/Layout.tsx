@@ -1,71 +1,105 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, Cpu, ShieldAlert, CheckCircle } from 'lucide-react';
+import { LayoutDashboard, ShieldAlert, CheckCircle2, ChevronLeft, ChevronRight, Search, Zap, AlertCircle } from 'lucide-react';
+import { LossLensLogo } from './LossLensLogo';
 
 export const Layout: React.FC = () => {
+  const [collapsed, setCollapsed] = useState(false);
+
   const navItems = [
     { path: '/', label: 'Overview', icon: LayoutDashboard },
-    { path: '/explorer', label: 'Pattern Explorer', icon: Cpu },
-    { path: '/investigation', label: 'Investigation', icon: ShieldAlert },
-    { path: '/decision', label: 'Decision Center', icon: CheckCircle },
+    { path: '/discovery', label: 'Emerging Risks', icon: AlertCircle },
+    { path: '/investigation', label: 'Investigations', icon: ShieldAlert },
+    { path: '/decision', label: 'Decisions', icon: CheckCircle2 },
   ];
 
   return (
-    <div className="flex h-screen bg-[#0b0f17] text-slate-100 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
       {/* Sidebar */}
-      <aside className="w-64 bg-[#131b29] border-r border-[#1f293d] flex flex-col">
-        <div className="p-6 border-b border-[#1f293d] flex items-center space-x-3">
-          <div className="p-2 bg-blue-600/20 text-blue-500 rounded-lg border border-blue-500/30">
-            <ShieldAlert className="w-6 h-6" />
-          </div>
-          <div>
-            <h1 className="font-bold text-lg tracking-wider text-white">LOSSLENS</h1>
-            <p className="text-xs text-slate-400">Loss Intelligence Engine</p>
-          </div>
+      <aside
+        className={`bg-white border-r border-slate-200 flex flex-col transition-all duration-300 relative z-20 shadow-subtle ${
+          collapsed ? 'w-20' : 'w-64'
+        }`}
+      >
+        {/* Logo Section */}
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between min-h-[72px]">
+          <LossLensLogo collapsed={collapsed} size="md" />
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Navigation Items (EXACTLY 4 items) */}
+        <nav className="flex-1 p-3 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => (
             <NavLink
               key={item.path}
               to={item.path}
+              end={item.path === '/'}
               className={({ isActive }) =>
-                `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                `flex items-center space-x-3 px-3.5 py-2.5 rounded-xl font-medium text-xs transition-all duration-150 ${
                   isActive
-                    ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20 font-medium'
-                    : 'text-slate-400 hover:bg-[#1f293d]/50 hover:text-slate-200'
+                    ? 'bg-blue-50 text-blue-700 border border-blue-200/80 font-bold shadow-subtle'
+                    : 'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900'
                 }`
               }
             >
-              <item.icon className="w-5 h-5" />
-              <span>{item.label}</span>
+              <item.icon className="w-4 h-4 shrink-0" />
+              {!collapsed && <span>{item.label}</span>}
             </NavLink>
           ))}
         </nav>
 
-        <div className="p-4 border-t border-[#1f293d]">
-          <div className="p-3 bg-[#0b0f17] rounded-xl border border-[#1f293d] text-xs">
-            <div className="flex items-center justify-between text-slate-400 mb-1">
-              <span>Environment</span>
+        {/* Environment Status Footer */}
+        <div className="p-3 border-t border-slate-100 bg-slate-50/50">
+          <div className={`p-3 bg-white rounded-xl border border-slate-200 text-xs shadow-subtle ${collapsed ? 'text-center' : ''}`}>
+            <div className="flex items-center justify-between text-slate-500 mb-1">
+              {!collapsed && <span className="font-semibold text-[10px] uppercase tracking-wider text-slate-400">Environment</span>}
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             </div>
-            <p className="font-semibold text-slate-200">Razorpay Test Mode</p>
+            {!collapsed ? (
+              <div className="flex items-center space-x-1.5 font-bold text-slate-900 text-xs">
+                <Zap className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span>Razorpay Test Mode</span>
+              </div>
+            ) : (
+              <Zap className="w-4 h-4 text-blue-600 mx-auto" />
+            )}
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col overflow-y-auto">
-        <header className="h-16 border-b border-[#1f293d] bg-[#131b29]/50 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-10">
-          <h2 className="text-sm font-semibold text-slate-400">Merchant Loss Intelligence & Response Engine</h2>
+      <main className="flex-1 flex flex-col overflow-y-auto bg-slate-50">
+        {/* Sticky Header */}
+        <header className="h-16 border-b border-slate-200/80 bg-white/80 backdrop-blur-md px-8 flex items-center justify-between sticky top-0 z-10 shadow-subtle">
+          <div className="flex items-center space-x-3">
+            <h2 className="text-sm font-semibold text-slate-700">
+              Merchant Risk Intelligence Platform
+            </h2>
+          </div>
+
           <div className="flex items-center space-x-4">
-            <span className="text-xs px-3 py-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-full">
+            <div className="relative hidden md:block">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+              <input
+                type="text"
+                placeholder="Search risks, entities, orders..."
+                className="pl-9 pr-4 py-1.5 text-xs bg-slate-100 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 w-64 transition-all"
+              />
+            </div>
+            <span className="inline-flex items-center px-3 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-xs font-semibold rounded-full">
               Engine Status: Active
             </span>
           </div>
         </header>
 
-        <div className="p-8">
+        {/* Dynamic Page Outlet */}
+        <div className="p-8 max-w-7xl mx-auto w-full">
           <Outlet />
         </div>
       </main>

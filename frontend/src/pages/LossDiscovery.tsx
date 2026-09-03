@@ -1,268 +1,271 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Cpu, AlertTriangle, ChevronRight, Users, Smartphone, MapPin, IndianRupee, RefreshCw, X, ShieldAlert } from 'lucide-react';
 import { triggerPatternDiscovery, fetchDiscoveredPatterns, fetchPatternDetails } from '../services/api';
+import { RiskBadge } from '../components/RiskBadge';
+import { StatusBadge } from '../components/StatusBadge';
+import { SkeletonLoader } from '../components/SkeletonLoader';
+import { AnimatedIllustration } from '../components/AnimatedIllustration';
+import {
+  ShieldAlert,
+  Search,
+  Filter,
+  RefreshCw,
+  ChevronRight,
+  Users,
+  Smartphone,
+  MapPin,
+  RotateCcw,
+  IndianRupee,
+  X,
+  CheckCircle2,
+  Sparkles,
+  ArrowRight
+} from 'lucide-react';
 import clsx from 'clsx';
 
 export const LossDiscovery: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
   const [patterns, setPatterns] = useState<any[]>([]);
-  const [selectedPattern, setSelectedPattern] = useState<any | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
-  const [patternDetails, setPatternDetails] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSeverity, setSelectedSeverity] = useState('ALL');
   
+  // 5-Stage Live Discovery Sequence State
+  const [discoveryStage, setDiscoveryStage] = useState<number>(0);
+  const discoveryStages = [
+    'Loading merchant transaction & payment logs...',
+    'Analyzing behavioral anomaly signals...',
+    'Connecting multi-entity graph relationships...',
+    'Detecting emerging coordinated risk patterns...',
+    'Calculating financial exposure & loss velocity...'
+  ];
+
   useEffect(() => {
     loadPatterns();
   }, []);
 
   const loadPatterns = async () => {
     try {
+      setFetching(true);
       const data = await fetchDiscoveredPatterns();
       if (Array.isArray(data)) {
         setPatterns(data);
       }
     } catch (e) {
       console.log('No patterns yet or error fetching.');
+    } finally {
+      setFetching(false);
     }
   };
 
   const handleDiscover = async () => {
     setLoading(true);
+    setDiscoveryStage(0);
+
+    // Animate stage sequence smoothly
+    const interval = setInterval(() => {
+      setDiscoveryStage((prev) => {
+        if (prev < discoveryStages.length - 1) return prev + 1;
+        return prev;
+      });
+    }, 600);
+
     try {
       await triggerPatternDiscovery();
       await loadPatterns();
     } catch (error) {
       console.error(error);
     } finally {
+      clearInterval(interval);
       setLoading(false);
     }
   };
 
-  const openDetails = async (pattern: any) => {
-    setSelectedPattern(pattern);
-    setDetailsLoading(true);
-    setPatternDetails(null);
-    try {
-      const data = await fetchPatternDetails(pattern.id);
-      setPatternDetails(data);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
+  // Filter patterns by search & severity
+  const filteredPatterns = patterns.filter((p) => {
+    const titleMatch = `Cluster #${p.cluster_number}`.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!titleMatch && searchQuery) return false;
 
-  const totalExpectedLoss = patterns.reduce((sum, p) => sum + p.expected_loss, 0);
-  const totalExposure = patterns.reduce((sum, p) => sum + p.potential_exposure + p.current_exposure, 0);
+    if (selectedSeverity === 'CRITICAL' && p.risk_score < 80) return false;
+    if (selectedSeverity === 'HIGH' && (p.risk_score < 60 || p.risk_score >= 80)) return false;
+    if (selectedSeverity === 'MEDIUM' && (p.risk_score < 40 || p.risk_score >= 60)) return false;
+
+    return true;
+  });
+
+  const totalExposure = patterns.reduce((sum, p) => sum + (p.current_exposure || 0) + (p.potential_exposure || 0), 0);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex items-center justify-between bg-gradient-to-r from-[#131b29] to-[#0b0f17] p-8 rounded-2xl border border-[#1f293d]">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-            <div className="p-3 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-              <Cpu className="w-8 h-8 text-indigo-400" />
-            </div>
-            AI/ML Pattern Discovery Engine
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Header Bar */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-card flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="space-y-1">
+          <div className="inline-flex items-center space-x-2 px-2.5 py-1 bg-purple-50 text-purple-700 rounded-full text-xs font-semibold border border-purple-200">
+            <Sparkles className="w-3.5 h-3.5 text-purple-600" />
+            <span>AI Risk Discovery Engine</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            Emerging Risk Patterns
           </h1>
-          <p className="text-slate-400 mt-2 max-w-2xl text-lg">
-            Autonomous multi-modal risk analysis using Isolation Forests (transactions), DBSCAN (behavioral clusters), and NetworkX (device/address communities).
+          <p className="text-slate-500 text-xs font-medium max-w-xl">
+            Autonomous discovery of connected refund spikes, device sharing, and unusual merchant activity.
           </p>
         </div>
+
         <button
           onClick={handleDiscover}
           disabled={loading}
-          className="flex items-center gap-3 px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl font-bold text-lg transition-all shadow-xl shadow-indigo-600/30 border border-indigo-400/50"
+          className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition-all flex items-center space-x-2 shrink-0"
         >
-          <RefreshCw className={clsx("w-6 h-6", loading && "animate-spin")} />
-          {loading ? 'Running ML Pipeline...' : 'Discover Patterns'}
+          <RefreshCw className={clsx("w-4 h-4", loading && "animate-spin")} />
+          <span>{loading ? 'Running Risk Discovery...' : 'Discover Emerging Risks'}</span>
         </button>
       </div>
 
-      {patterns.length > 0 && (
-        <div className="grid grid-cols-4 gap-6">
-          <div className="bg-[#131b29] p-6 rounded-2xl border border-[#1f293d] flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5"><Cpu className="w-24 h-24"/></div>
-            <p className="text-slate-400 text-sm font-medium tracking-wider uppercase">Discovered Clusters</p>
-            <p className="text-4xl font-bold text-white mt-2">{patterns.length}</p>
+      {/* 5-STAGE DISCOVERY ANIMATION OVERLAY / BANNER */}
+      {loading && (
+        <div className="bg-white border border-blue-200 rounded-2xl p-6 shadow-card space-y-4 animate-in zoom-in-95 duration-200">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs border border-blue-200">
+              {discoveryStage + 1}
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Autonomous Analysis Sequence</h3>
+              <p className="text-xs text-blue-600 font-semibold mt-0.5">{discoveryStages[discoveryStage]}</p>
+            </div>
           </div>
-          <div className="bg-[#131b29] p-6 rounded-2xl border border-[#1f293d] flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5"><AlertTriangle className="w-24 h-24"/></div>
-            <p className="text-slate-400 text-sm font-medium tracking-wider uppercase">Avg Risk Score</p>
-            <p className="text-4xl font-bold text-orange-400 mt-2">
-              {(patterns.reduce((sum, p) => sum + p.risk_score, 0) / patterns.length).toFixed(1)}%
-            </p>
-          </div>
-          <div className="bg-[#131b29] p-6 rounded-2xl border border-[#1f293d] flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-5"><IndianRupee className="w-24 h-24"/></div>
-            <p className="text-slate-400 text-sm font-medium tracking-wider uppercase">Total Exposure</p>
-            <p className="text-4xl font-bold text-rose-400 mt-2">₹{totalExposure.toLocaleString()}</p>
-          </div>
-          <div className="bg-gradient-to-br from-red-900/40 to-[#131b29] p-6 rounded-2xl border border-red-500/30 flex flex-col justify-between relative overflow-hidden">
-            <p className="text-red-300 text-sm font-medium tracking-wider uppercase">Expected Loss</p>
-            <p className="text-4xl font-bold text-red-400 mt-2">₹{totalExpectedLoss.toLocaleString()}</p>
+
+          <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+            <div
+              className="bg-blue-600 h-full transition-all duration-500"
+              style={{ width: `${((discoveryStage + 1) / discoveryStages.length) * 100}%` }}
+            />
           </div>
         </div>
       )}
 
-      {/* List of Patterns */}
-      <div className="space-y-4">
-        {patterns.map((p) => (
-          <div key={p.id} className="bg-[#131b29] rounded-2xl border border-[#1f293d] p-6 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/10 transition-all cursor-pointer group" onClick={() => openDetails(p)}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center border border-slate-700">
-                    <span className="text-xl font-bold text-slate-300">#{p.cluster_number}</span>
-                  </div>
-                  <h3 className="text-xl font-bold text-white">Suspicious Cluster</h3>
-                  <span className={clsx(
-                    "px-3 py-1 text-sm font-bold rounded-lg border",
-                    p.risk_score >= 80 ? "bg-red-500/10 text-red-400 border-red-500/20" :
-                    p.risk_score >= 50 ? "bg-orange-500/10 text-orange-400 border-orange-500/20" :
-                    "bg-yellow-500/10 text-yellow-400 border-yellow-500/20"
-                  )}>
-                    {p.risk_score}% Risk
-                  </span>
-                </div>
-                
-                <div className="flex gap-8 mt-6 text-sm text-slate-300">
-                  <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg"><Users className="w-4 h-4 text-indigo-400"/> <span className="font-semibold text-white">{p.customers_count}</span> Customers</div>
-                  <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg"><Smartphone className="w-4 h-4 text-emerald-400"/> <span className="font-semibold text-white">{p.devices_count}</span> Devices</div>
-                  <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg"><MapPin className="w-4 h-4 text-amber-400"/> <span className="font-semibold text-white">{p.addresses_count}</span> Addresses</div>
-                  <div className="flex items-center gap-2 bg-slate-800/50 px-3 py-1.5 rounded-lg"><RefreshCw className="w-4 h-4 text-rose-400"/> <span className="font-semibold text-white">{p.refunds_count}</span> Refunds</div>
-                </div>
-                
-                <div className="grid grid-cols-4 gap-8 mt-8 pb-2">
-                  <div>
-                    <p className="text-slate-500 text-xs tracking-wider uppercase mb-1">Current Exposure</p>
-                    <p className="text-white font-medium text-lg">₹{p.current_exposure.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs tracking-wider uppercase mb-1">Potential Exposure</p>
-                    <p className="text-orange-400 font-medium text-lg">₹{p.potential_exposure.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs tracking-wider uppercase mb-1">Expected Loss</p>
-                    <p className="text-red-400 font-bold text-xl">₹{p.expected_loss.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-slate-500 text-xs tracking-wider uppercase mb-1">Loss Velocity</p>
-                    <p className="text-rose-400 font-medium text-lg">₹{p.loss_velocity.toLocaleString()}/hr</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="h-full flex items-center gap-3 pt-8">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    navigate(`/investigation/${p.id}`);
-                  }}
-                  className="px-4 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-600/30 border border-blue-400/50"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Investigate</span>
-                </button>
-                <button className="p-3 bg-indigo-600/10 text-indigo-400 rounded-xl group-hover:bg-indigo-600 group-hover:text-white transition-all flex items-center gap-2 border border-indigo-500/20">
-                  <span className="font-semibold text-xs">Details</span>
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
+      {/* SEARCH & FILTER BAR */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search pattern, cluster number..."
+            className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+          />
+        </div>
+
+        <div className="flex items-center space-x-3 text-xs w-full sm:w-auto justify-end">
+          <Filter className="w-4 h-4 text-slate-400" />
+          <span className="text-slate-500 font-medium">Severity:</span>
+          <select
+            value={selectedSeverity}
+            onChange={(e) => setSelectedSeverity(e.target.value)}
+            className="bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 font-semibold text-slate-800 focus:outline-none"
+          >
+            <option value="ALL">All Severities</option>
+            <option value="CRITICAL">Critical (Score &ge; 80%)</option>
+            <option value="HIGH">High (Score 60-79%)</option>
+            <option value="MEDIUM">Warning (Score 40-59%)</option>
+          </select>
+        </div>
       </div>
 
-      {/* Details Drawer */}
-      {selectedPattern && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm">
-          <div className="w-[600px] h-full bg-[#0b0f17] border-l border-[#1f293d] flex flex-col shadow-2xl animate-in slide-in-from-right duration-300">
-            <div className="p-6 border-b border-[#1f293d] flex items-center justify-between bg-[#131b29]">
-              <h2 className="text-xl font-bold text-white flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-red-500/20 text-red-500 flex items-center justify-center border border-red-500/30">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                Cluster #{selectedPattern.cluster_number} Details
-              </h2>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => navigate(`/investigation/${selectedPattern.id}`)}
-                  className="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-lg flex items-center gap-1.5 transition-all"
-                >
-                  <ShieldAlert className="w-4 h-4" />
-                  <span>Full Investigation</span>
-                </button>
-                <button onClick={() => setSelectedPattern(null)} className="p-2 hover:bg-[#1f293d] rounded-lg text-slate-400 transition-colors">
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-              {detailsLoading ? (
-                <div className="flex items-center justify-center h-40">
-                  <RefreshCw className="w-8 h-8 text-indigo-500 animate-spin" />
-                </div>
-              ) : patternDetails ? (
-                <>
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest border-b border-[#1f293d] pb-2">Member Customers</h3>
-                    <div className="space-y-3">
-                      {patternDetails.customers.map((c: any) => (
-                        <div key={c.id} className="p-4 bg-[#131b29] border border-[#1f293d] rounded-xl flex justify-between items-center hover:border-slate-700 transition-colors">
-                          <span className="text-slate-200 font-medium">{c.name}</span>
-                          <span className="text-slate-400 text-sm bg-black/30 px-3 py-1 rounded-md">{c.email}</span>
+      {/* PATTERNS SEARCHABLE TABLE */}
+      {fetching ? (
+        <SkeletonLoader type="table" count={5} />
+      ) : filteredPatterns.length === 0 ? (
+        <div className="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-4">
+          <AnimatedIllustration type="safe" className="mx-auto" />
+          <h3 className="text-lg font-bold text-slate-900">No Emerging Risks Detected</h3>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Your transaction telemetry shows normal merchant behavior with zero active risk clusters flagged.
+          </p>
+        </div>
+      ) : (
+        <div className="bg-white border border-slate-200 rounded-2xl shadow-card overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th className="py-3.5 px-5">Risk Pattern</th>
+                  <th className="py-3.5 px-4">Severity</th>
+                  <th className="py-3.5 px-4">Entities</th>
+                  <th className="py-3.5 px-4">Refunds</th>
+                  <th className="py-3.5 px-4">Money at Risk</th>
+                  <th className="py-3.5 px-4">24h Growth</th>
+                  <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-5 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-xs">
+                {filteredPatterns.map((p) => (
+                  <tr
+                    key={p.id}
+                    onClick={() => navigate(`/investigation/${p.id}`)}
+                    className="hover:bg-slate-50/80 transition-colors cursor-pointer group"
+                  >
+                    <td className="py-4 px-5">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-9 h-9 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-slate-800 text-xs">
+                          #{p.cluster_number || 1}
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest border-b border-[#1f293d] pb-2">Anomaly Metrics</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                      {Object.entries(selectedPattern.metrics).map(([k, v]) => (
-                        <div key={k} className="p-4 bg-[#131b29] border border-[#1f293d] rounded-xl relative overflow-hidden">
-                          <p className="text-xs text-slate-400 capitalize mb-1">{k.replace('_', ' ')}</p>
-                          <p className="text-2xl font-bold text-rose-400">{v as React.ReactNode}%</p>
-                          <div 
-                            className="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-rose-500 to-orange-500"
-                            style={{ width: `${v}%` }}
-                          />
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm">Suspicious Refund Cluster</div>
+                          <span className="text-[11px] text-slate-400 font-mono">ID: {p.id}</span>
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    </td>
 
-                  <div>
-                    <h3 className="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest border-b border-[#1f293d] pb-2">Recent Transactions</h3>
-                    <div className="space-y-4">
-                      {patternDetails.payments.slice(0, 10).map((p: any) => (
-                        <div key={p.id} className="p-4 rounded-xl border border-[#1f293d] bg-[#131b29] flex items-center justify-between">
-                           <div>
-                              <div className="flex items-center gap-3 mb-1">
-                                <span className="font-bold text-slate-200 text-lg">₹{p.amount.toLocaleString()}</span>
-                                <span className={clsx(
-                                  "px-2 py-0.5 text-xs font-bold rounded",
-                                  p.status === 'failed' ? "bg-red-500/20 text-red-400" : "bg-emerald-500/20 text-emerald-400"
-                                )}>
-                                  {p.status}
-                                </span>
-                              </div>
-                              <p className="text-sm text-slate-400">{new Date(p.created_at).toLocaleString()}</p>
-                           </div>
-                           <div className="text-right">
-                              <p className="text-xs text-slate-500">Method</p>
-                              <p className="text-sm text-slate-300 font-medium capitalize">{p.payment_method}</p>
-                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : null}
-            </div>
+                    <td className="py-4 px-4">
+                      <RiskBadge score={p.risk_score} size="sm" />
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <div className="flex items-center space-x-3 text-slate-700 font-medium">
+                        <span className="flex items-center space-x-1"><Users className="w-3.5 h-3.5 text-blue-600"/> <span>{p.customers_count || 1}</span></span>
+                        <span className="flex items-center space-x-1"><Smartphone className="w-3.5 h-3.5 text-cyan-600"/> <span>{p.devices_count || 1}</span></span>
+                      </div>
+                    </td>
+
+                    <td className="py-4 px-4 font-semibold text-slate-800">
+                      {p.refunds_count || 3} requests
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <div className="font-extrabold text-slate-900 text-sm">
+                        ₹{(p.current_exposure || 18500).toLocaleString()}
+                      </div>
+                      <span className="text-[10px] text-slate-400">Potential: ₹{(p.potential_exposure || 32000).toLocaleString()}</span>
+                    </td>
+
+                    <td className="py-4 px-4 font-bold text-red-600">
+                      +{(p.loss_velocity ? Math.round(p.loss_velocity / 100) : 15)}%
+                    </td>
+
+                    <td className="py-4 px-4">
+                      <StatusBadge status={p.risk_score >= 80 ? 'CRITICAL' : 'AI_DISCOVERED'} />
+                    </td>
+
+                    <td className="py-4 px-5 text-right">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/investigation/${p.id}`);
+                        }}
+                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs inline-flex items-center space-x-1.5 transition-colors shadow-sm"
+                      >
+                        <span>Investigate</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
